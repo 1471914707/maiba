@@ -1,0 +1,135 @@
+package com.lin.servlet;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import cn.maiba.MyDataBase;
+import cn.maiba.User;
+
+/**
+ * Servlet implementation class HandleModify
+ */
+public class HandleModify extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public HandleModify() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		HttpSession session = request.getSession();
+		request.setCharacterEncoding("utf-8");
+		String userName = "";
+		String account = "";
+		String password = "";
+		String email = "";
+		int age;
+		String account_before = request.getParameter("account_before");
+		userName  = request.getParameter("userName");
+		account = request.getParameter("account");
+		password = request.getParameter("password");
+		email = request.getParameter("email");
+		age = Integer.parseInt(request.getParameter("age"));
+		int userId =Integer.parseInt(request.getParameter("userId"));
+		List userList = null;
+		try {
+			userList = MyDataBase.select(User.class,"account="+account);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (account.length() <= 0){
+			request.setAttribute("ModTip", "账号不能为空");
+			request.getRequestDispatcher("/user/GetUserModify?userId="+userId).forward(request, response);
+			//response.sendRedirect(request.getContextPath()+"/user/GetUserModify?userId="+userId + "&ModTip="+"账号不能为空");
+			return ;
+		}
+		
+		if (password.length() <= 5){
+			request.setAttribute("ModTip", "密码不能少于6位");
+			request.getRequestDispatcher("/user/GetUserModify?userId="+userId).forward(request, response);
+			//response.sendRedirect(request.getContextPath()+"/user/GetUserModify?userId="+userId + "&ModTip="+"密码不能少于6位");
+			return ;
+		}
+		if (userName.length() <= 0){
+			request.setAttribute("ModTip", "昵称不可为空");
+			request.getRequestDispatcher("/user/GetUserModify?userId="+userId).forward(request, response);
+		//	response.sendRedirect(request.getContextPath()+"/user/GetUserModify?userId="+userId + "&ModTip="+"昵称不可为空");
+			return ;
+		}
+		
+		if (!(age >=0 && age <= 150)){
+			request.setAttribute("ModTip", "年龄只能为0~150");
+			request.getRequestDispatcher("/user/GetUserModify?userId="+userId).forward(request, response);
+			response.sendRedirect(request.getContextPath()+"/user/GetUserModify?userId="+userId + "&ModTip="+"年龄只能为0~150");
+			return ;
+		}
+		
+		boolean flag = false;
+		boolean self = false;
+		if (userList != null)
+			if (userList.size() != 0){//已经存在该账号！
+				User u_self = (User)session.getAttribute("user");
+				User u = (User)userList.get(0);
+							
+				if (u.getAccount().equals(account_before)){
+					flag = true;//需要保存
+					//if (u.getAccount().equals(u_self.getAccount()))
+					if (userId == u_self.getId())
+						self = true;//修改的还是自己
+				}else{
+					request.setAttribute("ModTip", "账号已存在");
+					request.getRequestDispatcher("/user/GetUserModify?userId="+userId).forward(request, response);
+					//response.sendRedirect(request.getContextPath()+"/user/GetUserModify?userId="+userId + "&ModTip="+"账号已存在");
+					return ;
+				}		
+			}else{
+				flag = true;
+			}		
+		
+		if(flag){
+			User user = new User();		
+			user.setId(userId);
+			user.setAccount(account);
+			user.setAge(age);
+			user.setEmail(email);
+			user.setPassword(password);
+			user.setUserName(userName);
+			if (MyDataBase.update(user)){
+				if(self)
+					session.setAttribute("user", user);
+				response.sendRedirect(request.getContextPath()+"/user/GetUserDetail?userId=" + userId);
+				return ;				
+			}
+			else{
+				request.setAttribute("ModTip", "修改失败");
+				request.getRequestDispatcher("/user/GetUserModify?userId="+userId).forward(request, response);
+			//	response.sendRedirect(request.getContextPath()+"/user/GetUserModify?userId="+userId + "&ModTip="+"修改失败");
+				return ;
+			}
+		}
+	}
+
+}

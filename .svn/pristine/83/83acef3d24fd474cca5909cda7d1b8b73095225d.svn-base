@@ -1,0 +1,118 @@
+package com.lin.servlet;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import cn.maiba.MyDataBase;
+import cn.maiba.User;
+
+/**
+ * Servlet implementation class HandleUserLogin
+ */
+public class HandleUserLogin extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public HandleUserLogin() {
+        super();
+    	//System.out.println("-------HandleUserLogin--------------");
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		HttpSession session = request.getSession();
+		String account  = "";
+		String password = "";
+		boolean flag = false;
+		account  = request.getParameter("account");
+		password = request.getParameter("password");
+		String verCode = request.getParameter("VerificationCode");
+		if (verCode!=null && !verCode.equals(session.getAttribute("rand"))){
+			setverNum(request);
+			request.setAttribute("Mess", "验证码错误");
+			request.getRequestDispatcher("/UserLogin.jsp").forward(request, response);
+			return ;
+		}
+
+		if (account.length() <= 0){			
+			flag = true;
+		}
+
+		if (password.length() <= 5){
+			flag = true;
+		}
+		if (flag){
+			setverNum(request);
+			request.setAttribute("Result_TYPE", 8);
+			request.setAttribute("Result_Message", "登录信息不符合要求！！！");
+			request.getRequestDispatcher("/ErrorTip.jsp").forward(request, response);
+		}
+
+		List userList = null;
+		try {
+			userList = MyDataBase.select(User.class,"account="+account);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (userList !=null){
+			if (userList.size()==0){
+				setverNum(request);
+				request.setAttribute("Result_TYPE", 1);
+				request.setAttribute("Result_Message", "你提交的用户不存在，请注册或重新登录！！");
+				request.getRequestDispatcher("/ErrorTip.jsp").forward(request, response);
+			}else{
+				User user = (User)userList.get(0);//因为帐号不能重复，故读出来的数据一定只有一个
+				if(user.getPassword().equals(password))//密码正确
+				{		
+					//跳转到成功页面。登录成功，在次做步骤3的工作
+					request.getSession().setAttribute("verNum", 3);
+					session.setAttribute("user", user);
+					String forwordURL = (String)session.getAttribute("forwordUrl");
+					//System.out.println("after login:"+forwordURL);
+					if (forwordURL != null){
+						session.removeAttribute("forwordUrl");
+						response.sendRedirect(forwordURL);
+						return ;
+					}
+					response.sendRedirect(request.getContextPath()+"/HandleArticleList");
+				}else{//密码错误
+					//跳转到失败页面。页面显示：密码错误，登录失败。
+					setverNum(request);
+					request.setAttribute("Result_TYPE", 2);
+					request.setAttribute("Result_Message", "你填写的密码不正确，请重新输入！！");
+					request.getRequestDispatcher("/ErrorTip.jsp").forward(request, response);
+				}
+			}
+		}else{
+			setverNum(request);
+			request.setAttribute("Result_TYPE", 1);
+			request.setAttribute("Result_Message", "你提交的用户不存在，请注册或重新登录！！");
+			request.getRequestDispatcher("/ErrorTip.jsp").forward(request, response);
+		}
+	}
+	private void setverNum(HttpServletRequest request){
+		int verNum = request.getSession().getAttribute("verNum")==null?3:(int) request.getSession().getAttribute("verNum");
+		request.getSession().setAttribute("verNum", --verNum);
+	}
+}

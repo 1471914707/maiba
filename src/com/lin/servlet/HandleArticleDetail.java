@@ -1,0 +1,108 @@
+package com.lin.servlet;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import cn.maiba.Article;
+import cn.maiba.Comment;
+import cn.maiba.MyDataBase;
+import cn.maiba.User;
+
+/**
+ * Servlet implementation class HandleArticleDetail
+ */
+public class HandleArticleDetail extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public HandleArticleDetail() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		int articleId = Integer.parseInt(request.getParameter("articleId"));
+		String reply = request.getParameter("Myreply");
+		if (reply != null){
+			Comment comm = new Comment();
+			comm.setArticleId(articleId);
+			comm.setContent(reply);
+			User user = ((User)request.getSession().getAttribute("user"));
+			comm.setUserId(user.getId());
+			Date date = new Date();
+			SimpleDateFormat fs = new SimpleDateFormat("YYYY-MM-dd HH:mm");
+			comm.setDate(fs.format(date));
+			Article art = (Article) MyDataBase.load(Article.class, articleId);
+			if (user.getId() ==art.getUserId() ){
+				comm.setIsread(1); //自己评论自己不会提醒
+			}
+			MyDataBase.save(comm);
+			int count = MyDataBase.select(Comment.class, "articleId="+articleId).size();
+			
+			art.setReplyCount(count);
+			MyDataBase.update(art);
+			 //评论文章加一积分
+			if ( user!= null){
+				user.setValue(user.getValue()+1);
+				MyDataBase.update(user);
+			}
+			//被评论加1分
+			User u = (User) (MyDataBase.load(User.class, art.getUserId()));
+			u.setValue(u.getValue()+1);
+			MyDataBase.update(u);
+		}
+		
+		Article article = (Article)MyDataBase.load(Article.class, articleId);
+		article.setPageView(article.getPageView()+1);
+		MyDataBase.update(article);
+		article = (Article)MyDataBase.load(Article.class, articleId);
+		List comment = MyDataBase.select(Comment.class, "articleId="+articleId);
+		int num = comment.size();
+		StringBuffer sb = new StringBuffer();
+		for (int i=0; i<num; i++){
+			sb.append(((User)MyDataBase.load(User.class, ((Comment)comment.get(i)).getUserId())).getUserName()+"&");
+		}
+		
+		//是否来查看未读评论
+		if (request.getParameter("commId") != null){
+			int commId = Integer.parseInt(request.getParameter("commId"));
+			Comment c = (Comment)MyDataBase.load(Comment.class, commId); 
+			c.setIsread(1);
+			request.getSession().setAttribute("UnreadCount", (int)request.getSession().getAttribute("UnreadCount")-1);
+			MyDataBase.update(c);
+		}
+				
+		request.setAttribute("article1", article);
+		request.setAttribute("comments", comment);
+		request.setAttribute("sbs",sb);
+		//做个判断是否为楼主的好友，
+		//
+		request.setAttribute("fan", true);
+		
+		request.setAttribute("ArtName", ((User)MyDataBase.load(User.class, article.getUserId())).getUserName());
+		request.getRequestDispatcher("/article-detail.jsp").forward(request, response);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}
+

@@ -1,0 +1,57 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"
+    import="java.util.*,cn.maiba.*"
+    %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>处理登陆</title>
+</head>
+<body>
+<%
+String account  = "";
+String password = "";
+account  = request.getParameter("account");
+password = request.getParameter("password");
+
+if (account.length() <= 0){					
+	pageContext.forward("ErrorTip.jsp?errortip=Failure-Login");
+}
+
+if (password.length() <= 5){
+	pageContext.forward("ErrorTip.jsp?errortip=Failure-Login");
+}
+
+List userList = 
+MyDataBase.select(User.TABLE_NAME,"account",account,DBOperator.OP_EQUAL);
+if (userList !=null){
+	if (userList.size()==0){
+		pageContext.forward("ErrorTip.jsp?errortip=Failure-Login");
+	}else{
+		User user = (User)userList.get(0);//因为帐号不能重复，故读出来的数据一定只有一个
+		if(user.getPassword().equals(password))//密码正确
+		{		
+			//跳转到成功页面。登录成功，在次做步骤3的工作
+			session.setAttribute("user", user);
+			String forwordURL = (String)session.getAttribute("forwordUrl");
+			System.out.println("after login:"+forwordURL);
+			if (forwordURL != null){
+				session.removeAttribute("forwordUrl");
+				response.sendRedirect(forwordURL);
+				return ;
+			}
+			//System.out.println(request.getContextPath());
+			//System.out.println(request.getContextPath()+"/login/UserList.jsp");
+			response.sendRedirect(request.getContextPath()+"/login/UserList.jsp");
+		}else{//密码错误
+			//跳转到失败页面。页面显示：密码错误，登录失败。
+			pageContext.forward("ErrorTip.jsp?errortip=Failure-Login");
+		}
+	}
+}else{
+	pageContext.forward("ErrorTip.jsp?errortip=Failure-Login");
+}
+
+%>
+</body>

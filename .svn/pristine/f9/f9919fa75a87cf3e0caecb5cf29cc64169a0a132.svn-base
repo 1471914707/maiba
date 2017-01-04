@@ -1,0 +1,56 @@
+package com.lin.servlet;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import cn.maiba.Article;
+import cn.maiba.MyDataBase;
+import cn.maiba.User;
+
+/**
+ * Servlet implementation class HandleArticleDetail
+ */
+public class HandleArticleDetail extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public HandleArticleDetail() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		int articleId = Integer.parseInt(request.getParameter("articleId"));
+		Article article = (Article)MyDataBase.load(Article.class, articleId);
+		article.setPageView(article.getPageView()+1);
+		MyDataBase.update(article);
+		article = (Article)MyDataBase.load(Article.class, articleId);
+		request.setAttribute("article1", article);
+		request.getRequestDispatcher("/login/article-detail.jsp").forward(request, response);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		int articleId = Integer.parseInt(request.getParameter("articleId"));
+		Article article = (Article)MyDataBase.load(Article.class, articleId);
+		article.setPageView(article.getPageView()+1);
+		MyDataBase.update(article);
+		article = (Article)MyDataBase.load(Article.class, articleId);
+		request.setAttribute("article1", article);
+		request.getRequestDispatcher("/login/article-detail.jsp").forward(request, response);
+	}
+
+}

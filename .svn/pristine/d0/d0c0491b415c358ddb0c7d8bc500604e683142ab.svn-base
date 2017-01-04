@@ -1,0 +1,178 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8" import="cn.maiba.*,java.util.*"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>用户列表</title>
+	<link rel="shortcut icon" href="../image/logo.png" />
+   <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+   <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+   <script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+function check(){
+	if (myform.index.value=="" || !myform.index.value.match(/^\d+$/))
+		return false;
+	return true;
+}
+</script>
+<style type="text/css">
+#reTable{
+	position: relative;
+	top:30px;
+	width: 700px;
+}
+#reTable td{
+	border:1px solid #99ccff;
+	}
+#reTable th{
+	background-color:#99bcfc;
+	}
+#Table_header{
+	background-color: #e8eef7;
+}
+#numInput{
+	width: 20px;
+	height: 20px;
+}
+
+#index{
+	text-decoration: none;
+	color: black;
+}
+#index2:VISITED{
+	color:#2081d2;
+}
+</style>
+</head>
+<body>
+<%
+	User user_login = (User)session.getAttribute("user");
+	if (user_login == null)
+		response.sendRedirect("UserLogin.jsp");
+%>
+<%@include file="/include/header.jsp" %>
+<div align="center">
+<table id="reTable" cellspacing="0" cellpadding="5px">
+<th colspan="5" id="reTable_head_footer"><center>用户列表</center></th>
+<tr id="Table_header">
+<td>ID</td>
+<td>账号</td>
+<td>密码</td>
+<td>昵称</td>
+<td>操作</td>
+</tr>
+<%
+	List userList = MyDataBase.list(User.TABLE_NAME);
+	int totalCount = userList.size();
+	int simpleNum = 40;
+	int pageCount = totalCount%simpleNum==0?totalCount/simpleNum:totalCount/simpleNum+1;
+	int index = 1;
+	if (request.getParameter("index") != null)
+		index = Integer.parseInt(request.getParameter("index"));
+
+	User user1 = null;
+	int minIndex = (index-1) * simpleNum;
+	int maxIndex = totalCount - (index-1) * simpleNum >= simpleNum?simpleNum * index:totalCount;
+	for(int i=minIndex; i<maxIndex; i++){
+		user1 = (User)userList.get(i);
+	%>
+	<tr><td><%=user1.getId() %></td>
+	<td><a href="<%=request.getContextPath()%>/login/UserDetail.jsp?userId=<%=user1.getId()%>"> <%=user1.getAccount()%> </a></td>
+	<td><%=user1.getPassword() %></td>
+	<td><%=user1.getUserName() %></td>
+	<td><a href="<%=request.getContextPath()%>/login/UserDetail.jsp?userId=<%=user1.getId()%>">查看</a>，<a href="<%=request.getContextPath()%>/login/UserModify.jsp?userId=<%=user1.getId()%>">修改</a>，<a href="<%=request.getContextPath()%>/login/Handle-Delete.jsp?userId=<%=user1.getId() %>">删除</a></td>
+	<%
+	}
+	out.print("</tr>");
+	out.print("</table>");
+	
+%>
+</table><br/><br />
+<%
+	out.print("<ul class=\"pagination\">");
+	out.print("<li><a href=\"UserList.jsp?index=" + 1 + "\">首页</a></li>");
+	if(index != 1)
+		out.print("<li><a href=\"UserList.jsp?index=" + (index-1) + "\">&laquo;</a></li>");
+	int colNum = 16;
+	for (int j=index-colNum/2; j<index; j++){
+		if (index == 1)
+			break;
+		if ( j <= 0)
+			continue;
+		out.print("<li><a href=\"UserList.jsp?index=" + j + "\">"+ j +"</a></li>");
+	}
+	out.print("<li class=\"active\"><a href=\"UserList.jsp?index=" + index + "\">"+ index +"</a></li>");
+	for (int j=index+1; j<=index+colNum/2; j++){
+		if (index == pageCount)
+			break;
+		if (j == pageCount){
+			out.print("<li><a href=\"UserList.jsp?index=" + j + "\">"+ j +"</a></li>");
+			break;
+		}
+		else
+			out.print("<li><a href=\"UserList.jsp?index=" + j + "\">"+ j +"</a></li>");
+	}
+	if(index != pageCount)
+		out.print("<li><a href=\"UserList.jsp?index=" + (index+1) + "\">&raquo;</a></li>");
+	out.print("<li><a href=\"UserList.jsp?index=" + pageCount + "\">尾页</a></li>");
+	
+	out.print("</ul>");
+	
+
+	/* out.print("<b><a id=\"index2\"  href=\"UserList.jsp?index=" + 1 + "\">首页</a></b>&nbsp;&nbsp;");
+	if(index != 1)
+		out.print("<a id=\"index2\" href=\"UserList.jsp?index=" + (index-1) + "\">上一页</a>&nbsp;&nbsp;");
+
+	int colNum = 16;
+	for (int j=index-colNum/2; j<index; j++){
+		if (index == 1)
+			break;
+		if ( j <= 0)
+			continue;
+		out.print("<a id=\"index2\" href=\"UserList.jsp?index=" + j + "\">"+ j +"</a>&nbsp;&nbsp;");
+	}
+	out.print("<b><a id=\"index\" href=\"UserList.jsp?index=" + index + "\">"+ index +"</a></b>&nbsp;&nbsp;");
+	for (int j=index+1; j<=index+colNum/2; j++){
+		if (index == pageCount)
+			break;
+		if (j == pageCount){
+			out.print("<a id=\"index2\" href=\"UserList.jsp?index=" + j + "\">"+ j +"</a>&nbsp;&nbsp;");
+			break;
+		}
+		else
+			out.print("<a id=\"index2\" href=\"UserList.jsp?index=" + j + "\">"+ j +"</a>&nbsp;&nbsp;");
+	}
+
+	if(index != pageCount)
+		out.print("<a id=\"index2\" href=\"UserList.jsp?index=" + (index+1) + "\">下一页</a>&nbsp;&nbsp;");
+	out.print("<b><a id=\"index2\" href=\"UserList.jsp?index=" + pageCount + "\">尾页</a></b>&nbsp;&nbsp;");
+	 */
+%><br /><br />
+<form action="UserList.jsp" name="myform">
+第<input type="number" max="<%=pageCount %>" min="1" id="numInput" name="index" value="<%=index %>">页
+&nbsp;&nbsp;<input type="submit" value="跳转" onclick="return check()">
+</form>&nbsp;&nbsp;<br />
+共<span style="color:red;"><b><%=pageCount %></b></span>页，<span style="color:red;"><b><%=totalCount %></b></span>条记录！
+</div>
+<%@include file="/include/Footer.jsp" %>
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

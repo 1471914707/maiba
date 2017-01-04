@@ -1,0 +1,95 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>文章详情</title>
+<link rel="shortcut icon" href="image/logo.png" />
+<script type="text/javascript">
+	function handle_modify(){		
+		window.location.href="${pageContext.request.contextPath}/login/HandleArticleModify?articleId=${article1.id}";
+	}
+
+	function handle_delete(){		
+		window.location.href="${pageContext.request.contextPath}/login/HandleArticleDelete?articleId=${article1.id}";
+	}
+</script>
+<style type="text/css">
+#main{
+	margin:0 auto;
+	margin-top:40px;
+	width: 950px;
+}
+#title{
+	position: relative;
+	padding-top: 10px;
+	border-bottom-style: dashed;
+	border-bottom-width: 1px;
+}
+#content{
+	border-bottom-style: dashed;
+	border-bottom-width: 1px;
+	padding-bottom: 20px;
+}
+</style>
+</head>
+<body>
+<%@include file="/include/header.jsp" %>
+<div id="main">
+<c:if test="${Mess!=null }">
+${Mess }<br></c:if>
+<c:choose>
+ <c:when test="${article1.readpower==3 and sessionScope.user==null }">
+ 	请登录后查看。
+</c:when> 
+<c:otherwise>
+	<c:choose>
+		<c:when test="${sessionScope.user.id==article1.userId or article1.readpower==1 or (article1.readpower==4 and fan==true) or article1.readpower!=3}">
+	<div id="title"><h1 style="font-weight: bolder;">${article1.title }</h1></div><br>
+<div id="content">${article1.content }<br >
+<a>${ArtName }</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+${article1.lastTime }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+浏览量${article1.pageView }&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+评论${article1.replyCount }<br />
+<c:if test="${sessionScope.user.id==article1.userId }">
+<form action="" method="post">
+	<input type="button" value="修改" onclick="handle_modify()">
+	<input type="button" value="删除" onclick="handle_delete()">
+</form>
+</c:if>
+</div>
+<div id="reply">
+评论列表<br>
+<c:forTokens items="${sbs }" delims="&" var="sb" varStatus="s">
+	<a href="${pageContext.request.contextPath }/user/GetUserDetail?userId=${comments[s.index].userId }">
+${sb }
+</a>:
+${comments[s.index].content }
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span style="color: grey">${comments[s.index].date }</span>
+<div style="border-bottom-style: dashed;border-bottom-color: grey;border-bottom-width: 1px;"></div>
+</c:forTokens>
+<br/>
+
+<c:choose> 
+ <c:when test="${sessionScope.user !=null  and ( article1.commentpower == 1 or (fan==true and article1.commentpower==2)) }">
+ 	<form action="${pageContext.request.contextPath }/HandleArticleDetail?articleId=${article1.id }" method="post">
+评论<br />
+<textarea rows="4" cols="100" name="Myreply"></textarea><br />
+<input type="submit" value="发表评论">
+</form>
+</c:when>
+<c:otherwise>
+	你不能评论该文章。
+</c:otherwise>  
+</c:choose>  
+</div>
+</c:when>
+		<c:otherwise>该作者设置朋友圈可见。</c:otherwise>
+	</c:choose>
+</c:otherwise>  
+</c:choose>  
+</div>
+<%@include file="/include/Footer.jsp" %>
+</body>

@@ -1,0 +1,99 @@
+package com.lin.servlet;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import cn.maiba.MyDataBase;
+import cn.maiba.User;
+
+/**
+ * Servlet implementation class HandleUserRegister
+ */
+public class HandleUserRegister extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public HandleUserRegister() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//request.setCharacterEncoding("utf-8");
+		String userName = "";
+		String account = "";
+		String password = "";
+		String email = "";
+		int age;
+		userName  = request.getParameter("userName");
+		account = request.getParameter("account");
+		password = request.getParameter("password");
+		email = request.getParameter("email");
+		age = Integer.parseInt(request.getParameter("age"));
+		boolean flag = false;
+		List userList = null;
+		try {
+			userList = MyDataBase.select(User.class,"account='"+account+"'");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (account.length() <= 0 || userList != null){					
+			if (userList.size() != 0){
+				flag = true;
+			}			
+		}
+		
+		if (password.length() <= 5){
+			flag = true;
+		}
+		
+		if (userName.length() <= 0){
+			flag = true;
+		}
+		
+		if (!(age >=0 && age <= 150)){
+			flag = true;
+		}
+		if (flag){
+			request.setAttribute("Result_TYPE", 6);
+			request.setAttribute("Result_Message", "注册信息不符合要求或用户已经存在！");
+			request.getRequestDispatcher("/ErrorTip.jsp").forward(request, response);
+			return ;
+		}else{
+			//设置user对象，用于保存在Mydatabase
+			User user = new User();
+			user.setAccount(account);
+			user.setAge(age);
+			user.setEmail(email);
+			user.setPassword(password);
+			user.setUserName(userName);
+			user.setType(2);
+			user.setValue(10);
+			MyDataBase.save(user);
+			request.setAttribute("Result_TYPE", 7);
+			request.setAttribute("Result_Message", "恭喜你！注册成功！！");
+			request.getRequestDispatcher("/ErrorTip.jsp").forward(request, response);
+			return ;
+		}
+	}
+
+}

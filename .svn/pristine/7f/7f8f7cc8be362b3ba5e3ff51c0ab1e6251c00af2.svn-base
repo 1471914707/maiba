@@ -1,0 +1,22 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8" import="cn.maiba.*"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>删除</title>
+</head>
+<body>
+<%
+int userId = Integer.parseInt(request.getParameter("userId"));
+User user1 = (User)session.getAttribute("user");
+if (user1.getId() == userId){
+	System.out.println(request.getContextPath()+"/ErrorTip.jsp?errortip="+"No-Delete-User");
+	response.sendRedirect(request.getContextPath()+"/ErrorTip.jsp?errortip=No-Delete-User");
+}else{
+	if (MyDataBase.delete(User.TABLE_NAME,userId)){
+		response.sendRedirect(request.getContextPath()+"/ErrorTip.jsp?errortip=Delete-User");
+	}
+}
+%>
+</body>

@@ -1,0 +1,74 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8" import="cn.maiba.*,java.util.*"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>处理修改</title>
+</head>
+<body>
+<%
+	request.setCharacterEncoding("utf-8");
+	String userName = "";
+	String account = "";
+	String password = "";
+	String email = "";
+	int age;
+	String account_before = request.getParameter("account_before");
+	userName  = request.getParameter("userName");
+	account = request.getParameter("account");
+	password = request.getParameter("password");
+	email = request.getParameter("email");
+	age = Integer.parseInt(request.getParameter("age"));
+	int userId =Integer.parseInt(request.getParameter("userId"));
+	List userList =
+			MyDataBase.select(User.TABLE_NAME,"account",account,DBOperator.OP_EQUAL);
+	
+	if (account.length() <= 0)
+		pageContext.forward("UserModify.jsp?userId="+userId + "&ModTip="+"账号不能为空");
+	
+	if (password.length() <= 5)
+		pageContext.forward("UserModify.jsp?userId="+userId + "&ModTip="+"密码不能少于6位");
+	
+	if (userName.length() <= 0)
+		pageContext.forward("UserModify.jsp?userId="+userId + "&ModTip="+"昵称不可为空");
+	
+	if (!(age >=0 && age <= 150))
+		pageContext.forward("UserModify.jsp?userId="+userId + "&ModTip="+"年龄只能为0~150");
+	
+	boolean flag = false;
+	boolean self = false;
+	if (userList != null)
+		if (userList.size() != 0){//已经存在该账号！
+			User u = (User)userList.get(0);
+						
+			if (u.getAccount().equals(account_before)){
+				flag = true;//需要保存
+				self = true;//修改的还是自己
+			}else{
+				pageContext.forward("UserModify.jsp?userId="+userId + "&ModTip="+"账号已存在");
+			}
+			
+		}else{
+			flag = true;
+		}		
+	
+	if(flag){
+		User user = new User();		
+		user.setId(userId);
+		user.setAccount(account);
+		user.setAge(age);
+		user.setEmail(email);
+		user.setPassword(password);
+		user.setUserName(userName);
+		if (MyDataBase.update(User.TABLE_NAME, user)){
+			if(self)
+				session.setAttribute("user", user);
+			pageContext.forward("UserDetail.jsp?userId=" + userId);
+		}
+		else
+			pageContext.forward("UserModify.jsp?userId="+userId + "&ModTip="+"修改失败");
+	}
+
+%>
+</body>

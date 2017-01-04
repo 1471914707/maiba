@@ -1,0 +1,84 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>提示</title>
+<script src="http://libs.baidu.com/jquery/1.10.2/jquery.min.js" ></script>
+</head>
+<body>
+<%@include file="/include/header.jsp" %>
+
+<div align="center" id="div1">
+<%
+String tip = request.getParameter("errortip").trim();
+if (tip.equals("Failure-Login")){
+	%>
+	<div id="Failure-Login">
+<br /><br />
+用户名或者密码错误，请重新登录！<br />
+<form method="post" action="UserLogin.jsp"><br />
+<input type="submit" value="返回" /><br/>
+</form>
+</div>
+	<%
+}else if (tip.equals("Failure-UserRegister")){
+	%>
+	<div id="Failure-UserRegister"><br />
+该账号已经被使用，请重新选择一个账号！<br />
+<form method="post" action="UserRegister.jsp"><br />
+<input type="submit" value="返回" /><br/>
+</form>
+</div>
+	<%
+}else if (tip.equals("Delete-User")){
+	%>
+	<div id="Delete-User">
+<br /><br />
+删除用户成功！<br />
+<form method="post" action="/maiba/login/UserList.jsp"><br />
+<input type="submit" value="返回" /><br/>
+</form>
+</div>
+	<%
+}else if (tip.equals("No-Delete-User")){
+	%>
+	<div id="No-Delete-User">
+<br /><br />
+不允许删除自己！<br />
+<form method="post" action="<%=request.getContextPath()%>/login/UserList.jsp"><br />
+<input type="submit" value="返回" /><br/>
+</form>
+</div>
+	<%
+}else{
+	out.print("无");
+}
+
+%>
+
+</div>
+<!-- <script type="text/javascript">
+	$(
+		function(){
+			if ($("#div1").text().trim() == "Failure-Login"){
+				$("#div1").load("ajax/tip.txt #Failure-Login");
+			}
+			else if($("#div1").text().trim() == "Failure-UserRegister"){
+				$("#div1").load("ajax/tip.txt #Failure-UserRegister");
+			}
+			else if($("#div1").text().trim() == "Delete-User"){
+				$("#div1").load("ajax/tip.txt #Delete-User");
+			}
+			else if($("#div1").text().trim() == "No-Delete-User"){
+				$("#div1").load("ajax/tip.txt #No-Delete-User");
+			}
+			else{
+				$("#div1").text("请开发人员处理这个错误！");
+			}
+		}		
+	);
+</script> -->
+<%@include file="/include/Footer.jsp" %>
+</body>

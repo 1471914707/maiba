@@ -1,0 +1,59 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    <%@page import="cn.maiba.* "%>
+            <%@page import="java.util.List"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<%
+		request.setCharacterEncoding("utf-8");
+		String userName = "";
+		String account = "";
+		String password = "";
+		String email = "";
+		int age;
+		userName  = request.getParameter("userName");
+		account = request.getParameter("account");
+		password = request.getParameter("password");
+		email = request.getParameter("email");
+		age = Integer.parseInt(request.getParameter("age"));
+		boolean flag = false;
+		List userList =
+				MyDataBase.select(User.TABLE_NAME,"account",account,DBOperator.OP_EQUAL);
+		if (account.length() <= 0 || userList != null){					
+			if (userList.size() != 0){
+				flag = true;
+			}			
+		}
+		
+		if (password.length() <= 5){
+			flag = true;
+		}
+		
+		if (userName.length() <= 0){
+			flag = true;
+		}
+		
+		if (!(age >=0 && age <= 150)){
+			flag = true;
+		}
+		if (flag){
+			pageContext.forward("ErrorTip.jsp?errortip=Failure-UserRegister");
+		}else{
+			//设置user对象，用于保存在Mydatabase
+			User user = new User();
+			user.setAccount(account);
+			user.setAge(age);
+			user.setEmail(email);
+			user.setPassword(password);
+			user.setUserName(userName);
+			MyDataBase.save(User.TABLE_NAME,user);
+			pageContext.forward("Succeess-UserRegister.jsp");
+		}
+%>
+
+</body>
